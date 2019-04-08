@@ -32,6 +32,7 @@ class NAS:
 		self.final_nn_train_epochs = 100
 		self.alpha1 = 5
 		self.mdfile = mdfile
+		self.pre_train_epochs = 1000
 		self.data = []
 		self.vocab = utils.vocab_dict(self.target_classes)
 		self.nb_classes = len(self.vocab.keys())+1
@@ -39,13 +40,13 @@ class NAS:
 	def pre_train_loss(self, target, output):
 		with open(self.mdfile, 'rb') as f:
 			mdata = pickle.load(f)
-		self.reward = np.arary(item[1] for item in mdata).reshape(len(mdata),1)
+		self.reward = np.array([item[1] for item in mdata]).reshape(len(mdata),1)
 		loss =  - K.sum(target * K.log(output/K.sum(output)), axis=-1)
 		loss -= (self.reward - np.median(self.reward))*self.alpha1
 		return loss
 
 	def custom_loss(self, target, output):
-		self.reward = np.array([item[1] for item in self.data]).reshape(len(self.data),1)
+		self.reward = np.array([item[1] for item in self.data[-self.mc_samples:]]).reshape(self.mc_samples,1)
 		loss =  - K.sum(target * K.log(output/K.sum(output)), axis=-1)
 		loss -= (self.reward - np.median(self.reward))*self.alpha1
 	 	## add predictor accuracy term
@@ -120,16 +121,7 @@ class NAS:
 			pickle.dump(best_archs_dict, file)
 		return val_accs, top_arch
 
-	def architecture_search(self, nn_optimizer='Adam'):
-		## initialise network modelling and controller instances
-		self.nn = sa.NeuralNetwork(self.target_classes, 
-                	                   optimizer=nn_optimizer)
-		self.cntrl = lstm.LSTMController(self.max_len,
-						self.nb_classes,
-						self.target_classes,
-						(1,self.max_len-1),
-						len(self.data))
-		## pretraining using metadata
+	def pre_train_controller(self):
 		print("pre-training...")
 		with open(self.mdfile, 'rb') as file:
 			md = pickle.load(file)
@@ -144,6 +136,18 @@ class NAS:
 					 self.pre_train_loss,
 					 len(md),
 					 self.pre_train_epochs)
+
+	def architecture_search(self, nn_optimizer='Adam'):
+		## initialise network modelling and controller instances
+		self.nn = sa.NeuralNetwork(self.target_classes, 
+                	                   optimizer=nn_optimizer)
+		self.cntrl = lstm.LSTMController(self.max_len,
+						self.nb_classes,
+						self.target_classes,
+						(1,self.max_len-1),
+						len(self.data))
+		## pretraining using metadata
+		self.pre_train_controller()
 		## start architecture search
 		for n in range(self.cntrl_epochs):
 			self.pre_training = False
@@ -174,22 +178,17 @@ class NAS:
 						 	  np.ma.average(history.history['val_acc'],
 							  weights=np.arange(1,len(history.history['val_acc'])+1),
 							  axis=-1),pred_val_acc[i]])
-
-			seqs = [item[0] for item in self.data]
-			cntrl_sequences = pad_sequences(seqs, maxlen = self.max_len, padding='post')
+			cntrl_sequences = pad_sequences(sequences, maxlen = self.max_len, padding='post')
 			xc = cntrl_sequences[:,:-1].reshape(len(cntrl_sequences),1,self.max_len-1)
 			yc = to_categorical(cntrl_sequences[:,-1],self.nb_classes)
 			## sequence, validation accuracy data sorted by validation accuracy
-			valaccswtime = [item[1] for item in self.data]
-			sorted_idx = np.argsort(valaccswtime)[::-1]
-			self.data = [self.data[x] for x in sorted_idx]
 			print("[sequence, val acc, predicted val acc]")
 			for data in self.data:
 				print(data)
 			## train the controller
 			val_acc_target = [item[1] for item in self.data]
 			self.cntrl.train_hybrid_model(xc,yc,
-						  val_acc_target,
+						  val_acc_target[-self.mc_samples:],
 						  self.custom_loss,
 						  len(self.data),
 						  self.hybrid_model_epochs)
