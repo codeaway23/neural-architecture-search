@@ -23,7 +23,7 @@ class NAS:
 		self.x_data = x
 		self.y_data = y
 		self.target_classes = target_classes
-		self.max_len = 7
+		self.max_len = 3
 		self.cntrl_epochs = 13
 		self.mc_samples = 10
 		self.hybrid_model_epochs = 10
@@ -192,6 +192,9 @@ class NAS:
 						  self.custom_loss,
 						  len(self.data),
 						  self.hybrid_model_epochs)
+		val_accs = [item[1] for item in self.data]
+		sorted_idx = np.argsort(val_accs)[::-1]
+		self.data = [self.data[x] for x in sorted_idx]
 		print("saving tested architectures, their validation accuracy and predicted accuracy...")
 		with open('logdir/tested_archs_data{}.pkl'.format(datetime.now().strftime("%H%M")), 'wb') as file:
 			pickle.dump(self.data, file)

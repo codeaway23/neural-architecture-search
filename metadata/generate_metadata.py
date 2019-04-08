@@ -41,7 +41,7 @@ def create_model(x_train, y_train, nb_inputs, nb_classes, arch_list, filename):
 		model.add(Flatten(input_shape=(nb_inputs)))
 	model.add(layer[0])
 	model.add(act[0])
-	hidden_layers = {{choice(range(1,4))}}  ## maximum 3 hidden layers. 
+	hidden_layers = {{choice(range(1,2))}}  ## maximum 3 hidden layers. 
 	for i in range(1,hidden_layers):
 		model.add(layer[i])
 		model.add(act[i])
@@ -91,7 +91,7 @@ def create_model(x_train, y_train, nb_inputs, nb_classes, arch_list, filename):
 def data():
 	datasets = '../datasets'
 	fl = os.listdir(datasets)
-	ind = 13
+	ind = 2
 	filename = fl[ind]
 	csvfile = datasets+'/{}'.format(fl[ind])
 	x = pd.read_csv(csvfile, encoding='iso-8859-1')
