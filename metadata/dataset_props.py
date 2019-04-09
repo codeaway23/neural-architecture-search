@@ -511,23 +511,16 @@ def get_dataset_props(data_frame):
 
 
 if __name__ == '__main__':
-    import dask.dataframe as dd
-    # One dataset
-    df = pd.read_csv("datasets/machinefinal.csv")
-
-    get_dataset_props(df)
-
-    exit()
-
+    
     # All datasets
-    FILE_PATH = "/home/kailash/mateml_opt/"
-    datasets = range(1, 55, 1)
+    FILE_PATH = "../datasets"
+    datasets = [FILE_PATH + "/" + x for x in os.listdir(FILE_PATH)]
 
     all_props = []
 
-    for dataset in datasets[:10]:
+    for dataset in datasets:
 
-        data_frame = pd.read_csv(os.path.join(FILE_PATH, "classification_datasets/{}.csv".format(dataset)))
+        data_frame = pd.read_csv(dataset)
         dataset_props = get_dataset_props(data_frame=data_frame)
 
         print("Dataset Properties:", len(dataset_props.keys()), json.dumps(dataset_props))
@@ -535,4 +528,5 @@ if __name__ == '__main__':
         all_props.append(dataset_props)
 
     df = pd.DataFrame(all_props)
-    df.to_csv("dataset_props.csv")
+    df['dataset'] = os.listdir(FILE_PATH)
+    df.to_csv("metadatafiles/dataset_props.csv")

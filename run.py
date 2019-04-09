@@ -1,4 +1,5 @@
 import time
+import numpy as np
 import pandas as pd
 from keras.datasets import fashion_mnist, mnist
 from keras.utils import to_categorical
@@ -7,21 +8,23 @@ from sklearn.preprocessing import LabelEncoder
 import nas as nas
 import utils as utils
 
+from metadata.meta_learning import get_mdfile
+
 utils.clean_log()
 
 start = time.time()
 
-# mnist data
-(x_train, y_train), (x_test, y_test) = mnist.load_data()
-x = x_train
-y = to_categorical(y_train)
-
+data = pd.read_csv('datasets/22.csv')
+y = data['label'].values
+data.drop('label', axis=1, inplace=True)
+x = data.values
 x, y = utils.unison_shuffled_copies(x,y)
 
-target_classes = 10
+target_classes = len(np.unique(y))
 
-mdfile = 'metadata/metadatafiles/hyperas_mnist_arch_list.pkl'
-mlpnas = nas.NAS(x, y, target_classes, mdfile)
+mdfile = get_mdfile(x,y)
+
+mlpnas = nas.NAS(x, to_categorical(y), target_classes, mdfile)
 
 mlpnas.max_len = 5
 mlpnas.cntrl_epochs = 20

@@ -1,3 +1,6 @@
+import sys
+sys.path.append('..')
+
 import numpy as np
 
 from hyperopt import Trials, STATUS_OK, tpe
@@ -16,6 +19,8 @@ import pickle
 
 import pandas as pd
 
+import utils as utils
+
 
 def create_model(x_train, y_train, nb_inputs, nb_classes, arch_list, filename):
 	layer = []
@@ -24,16 +29,10 @@ def create_model(x_train, y_train, nb_inputs, nb_classes, arch_list, filename):
 	else:
 		layer.append(Dense({{choice([8,16,32,64,128,256,512])}}))
 	layer.append(Dense({{choice([8,16,32,64,128,256,512])}}))
-	layer.append(Dense({{choice([8,16,32,64,128,256,512])}}))
-	layer.append(Dense({{choice([8,16,32,64,128,256,512])}}))
 	act = []
 	act.append(Activation({{choice(['relu', 'elu', 'tanh', 'sigmoid'])}}))
 	act.append(Activation({{choice(['relu', 'elu', 'tanh', 'sigmoid'])}}))
-	act.append(Activation({{choice(['relu', 'elu', 'tanh', 'sigmoid'])}}))
-	act.append(Activation({{choice(['relu', 'elu', 'tanh', 'sigmoid'])}}))
 	dropout = []
-	dropout.append({{choice([0,1])}})
-	dropout.append({{choice([0,1])}})
 	dropout.append({{choice([0,1])}})
 	dropout.append({{choice([0,1])}})
 	model = Sequential()
@@ -41,7 +40,7 @@ def create_model(x_train, y_train, nb_inputs, nb_classes, arch_list, filename):
 		model.add(Flatten(input_shape=(nb_inputs)))
 	model.add(layer[0])
 	model.add(act[0])
-	hidden_layers = {{choice(range(1,2))}}  ## maximum 3 hidden layers. 
+	hidden_layers = {{choice(range(1,3))}}  ## maximum 3 hidden layers. 
 	for i in range(1,hidden_layers):
 		model.add(layer[i])
 		model.add(act[i])
@@ -59,7 +58,8 @@ def create_model(x_train, y_train, nb_inputs, nb_classes, arch_list, filename):
 			metrics=['accuracy'],
 			optimizer='Adam')
 	print(model.summary())
-	result = model.fit(x_train, y_train,
+	x, y = utils.unison_shuffled_copies(x_train, y_train)
+	result = model.fit(x, y,
 			epochs=10,
 			validation_split=0.1)
 	validation_acc = np.ma.average(result.history['val_acc'], 
@@ -90,10 +90,8 @@ def create_model(x_train, y_train, nb_inputs, nb_classes, arch_list, filename):
 
 def data():
 	datasets = '../datasets'
-	fl = os.listdir(datasets)
-	ind = 2
-	filename = fl[ind]
-	csvfile = datasets+'/{}'.format(fl[ind])
+	filename = 'bank.csv'
+	csvfile = datasets+'/{}'.format(filename)
 	x = pd.read_csv(csvfile, encoding='iso-8859-1')
 	x.fillna(0.0, inplace=True)
 	x_train = x.values[:, :-1]
