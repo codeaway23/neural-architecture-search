@@ -4,8 +4,6 @@ from keras.datasets import fashion_mnist, mnist
 from keras.utils import to_categorical
 from sklearn.preprocessing import LabelEncoder
 
-import sample_architecture as sa
-import lstm_nn as lstm
 import nas as nas
 import utils as utils
 
@@ -27,7 +25,7 @@ mlpnas = nas.NAS(x, y, target_classes, mdfile)
 
 mlpnas.max_len = 5
 mlpnas.cntrl_epochs = 20
-mlpnas.mc_samples = 3
+mlpnas.mc_samples = 15
 mlpnas.hybrid_model_epochs = 15
 mlpnas.nn_epochs = 1
 mlpnas.nb_final_archs = 10

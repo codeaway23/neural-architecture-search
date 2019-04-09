@@ -9,9 +9,9 @@ from keras.utils import to_categorical
 from keras.callbacks import EarlyStopping
 from keras.preprocessing.sequence import pad_sequences
 
-import sample_architecture as sa
+import generate_nn as gn
+import controller as lstm
 import utils as utils
-import lstm_nn as lstm
 
 
 ################### neural architecture search ####################
@@ -139,7 +139,7 @@ class NAS:
 
 	def architecture_search(self, nn_optimizer='Adam'):
 		## initialise network modelling and controller instances
-		self.nn = sa.NeuralNetwork(self.target_classes, 
+		self.nn = gn.NeuralNetwork(self.target_classes, 
                 	                   optimizer=nn_optimizer)
 		self.cntrl = lstm.LSTMController(self.max_len,
 						self.nb_classes,
