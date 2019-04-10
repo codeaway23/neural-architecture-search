@@ -56,8 +56,8 @@ class NeuralNetwork:
 						srch_ind.append(i)
 				if len(srch_ind)==0:
 					self.shared_weights = self.shared_weights.append({'bigram_id': config_ids[j],
-																	'weights': layer.get_weights()},
-																	ignore_index=True)
+													'weights': layer.get_weights()},
+													ignore_index=True)
 				else:
 					self.shared_weights.at[srch_ind[0], 'weights'] = layer.get_weights()
 				j+=1
