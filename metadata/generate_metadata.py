@@ -90,7 +90,7 @@ def create_model(x_train, y_train, nb_inputs, nb_classes, arch_list, filename):
 
 def data():
 	datasets = '../datasets'
-	filename = 'bank.csv'
+	filename = '22.csv'
 	csvfile = datasets+'/{}'.format(filename)
 	x = pd.read_csv(csvfile, encoding='iso-8859-1')
 	x.fillna(0.0, inplace=True)

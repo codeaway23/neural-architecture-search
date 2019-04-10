@@ -190,8 +190,6 @@ def calculate_correlation(data_frame):
     dict_corr = dict()
     dict_corr["corr_pos_average"] = None
     dict_corr["corr_neg_average"] = None
-    # dict_corr["corr_pos_values"] = None
-    # dict_corr["corr_neg_values"] = None
     dict_corr["corr_total_average"] = None
 
     try:
@@ -275,29 +273,6 @@ def calculate_anderson_darling(data_frame):
 
     try:
 
-        # type = ["norm", "expon", "logistic", "gumbel", "gumbel_l", "gumbel_r"]
-        #
-        # import dask.array as da
-        # from dask import delayed
-        # data_frame = pd.DataFrame(np.random.randint(0, 100, size=(10000000, 100)))
-        #
-        # from dask.array import stats
-        #
-        # k, s, m = [stats.kurtosis(data_frame), stats.skew(), stats.moment(x, 5)]
-        #
-        # def calculate_and(series):
-        #     arr = da.from_array(series, chunks=1000000)
-        #     dist = delayed(stats.anderson)(arr, "norm")
-        #     return dist
-        #
-        # result = data_frame.apply(calculate_and, axis=0)
-        #
-        # aa = [r.compute() for r in result]
-        #
-        # print("End time:", datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f'))
-        #
-        # exit()
-
         type = ["norm", "expon", "logistic", "gumbel", "gumbel_l", "gumbel_r"]
         col = data_frame.columns
 
@@ -348,51 +323,6 @@ def calculate_anderson_darling(data_frame):
     print("")
     return dict_anderson
 
-
-# def calculate_entropy(data_frame):
-#     """
-#     Calculate entropy for each column
-#     :param data_frame:
-#     :return:
-#     """
-#     print("Calculating entropy...")
-#     print("Start time:", datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f'))
-#
-#     dict_entropy = dict()
-#     dict_entropy["entropy_max"] = None
-#     dict_entropy["entropy_min"] = None
-#     dict_entropy["entropy_delta"] = None
-#     dict_entropy["entropy_average"] = None
-#     # dict_entropy["entropy_values"] = None
-#
-#     try:
-#         col = data_frame.columns
-#         list_entropy = []
-#         for i in col:
-#             list_prob = []
-#             if len(np.unique(data_frame[i]) < 1000):
-#
-#                 for j in np.unique(data_frame[i]):
-#                     list_prob.append(list(data_frame[i]).count(j) / len(data_frame[i]))
-#             else:
-#                 tmp = pd.cut(data_frame[i], bins=5, labels=False)
-#                 for j in np.unique(tmp):
-#                     list_prob.append(list(tmp).count(j) / len(tmp))
-#
-#             x = stats.entropy(list_prob)
-#             list_entropy.append(x)
-#
-#         dict_entropy["entropy_max"] = max(list_entropy)
-#         dict_entropy["entropy_min"] = min(list_entropy)
-#         dict_entropy["entropy_delta"] = max(list_entropy) - min(list_entropy)
-#         dict_entropy["entropy_average"] = np.mean(list_entropy)
-#         # dict_entropy["entropy_values"] = list_entropy
-#     except Exception as e:
-#         print("Exception in {}:{}".format(inspect.stack()[0][3], e))
-#
-#     print("End time:", datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f'))
-#     print("")
-#     return dict_entropy
 
 def calculate_entropy(data_frame):
     """
