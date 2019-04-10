@@ -1,7 +1,6 @@
 import time
 import numpy as np
 import pandas as pd
-from keras.datasets import fashion_mnist, mnist
 from keras.utils import to_categorical
 from sklearn.preprocessing import LabelEncoder
 
