@@ -4,7 +4,9 @@ import warnings
 import numpy as np
 import pandas as pd
 from datetime import datetime
+from keras import optimizers
 from keras.models import Sequential
+from keras.utils import to_categorical
 from keras.layers import Dense, Dropout, Flatten
 
 import utils as utils
@@ -14,16 +16,14 @@ import utils as utils
 
 class NeuralNetwork:
 
-	def __init__(self,
-		target_classes,
-		optimizer = 'Adam',
-		loss_func = 'categorical_crossentropy',
-		metrics = ['accuracy']):
-
+	def __init__(self,target_classes):
 		self.target_classes = target_classes
-		self.optimizer = optimizer
-		self.loss_func = loss_func
-		self.metrics = metrics
+		self.optimizer = 'Adam'
+		self.lr = 0.001
+		self.decay = 0.0
+		self.momentum = 0.0
+		self.loss_func = 'categorical_crossentropy'
+		self.metrics = ['accuracy']
 		self.weights_file = 'logdir/shared_weights{}.pkl'.format(datetime.now().strftime("%H%M"))
 		self.shared_weights = pd.DataFrame({'bigram_id': [], 'weights': []})
 
@@ -94,6 +94,11 @@ class NeuralNetwork:
 	def create_model(self, pred_sequence, inp_shape):
 		## change sequence to its decoded value
 		pred_sequence = utils.decode_sequence(utils.vocab_dict(self.target_classes), pred_sequence)
+		## set optimizer parameters
+		if self.optimizer == 'sgd':
+			optim = optimizers.SGD(lr=self.lr,decay=self.decay,momentum=self.momentum)
+		else:
+			optim = getattr(optimizers, self.optimizer)(lr=self.lr,decay=self.decay)
 		## generate a sequential architecture for the sequence
 		## add flatten if data is 3d or more
 		if len(inp_shape) > 1:
@@ -104,7 +109,7 @@ class NeuralNetwork:
 					model.add(Dropout(0.2))
 				else:
 					model.add(Dense(units = pred_sequence[i][0], activation = pred_sequence[i][1]))
-			model.compile(loss = self.loss_func, optimizer = self.optimizer, metrics = self.metrics)
+			model.compile(loss = self.loss_func, optimizer = optim, metrics = self.metrics)
 			return model
 		else:
 			model = Sequential()
@@ -115,10 +120,12 @@ class NeuralNetwork:
 					model.add(Dropout(0.2))
 				else:
 					model.add(Dense(units = pred_sequence[i][0], activation = pred_sequence[i][1]))
-			model.compile(loss = self.loss_func, optimizer = self.optimizer, metrics = self.metrics)
+			model.compile(loss = self.loss_func, optimizer = optim, metrics = self.metrics)
 			return model
 
 	def train_model(self, model, x_data, y_data, nb_epochs, validation_split=0.1, callbacks=None, update_shared_weights=True):
+		if self.target_classes > 2:
+			y_data = to_categorical(y_data)
 		self.set_model_weights(model)
 		history = model.fit(x_data, y_data, epochs=nb_epochs, validation_split=validation_split, callbacks=callbacks)
 		if update_shared_weights:

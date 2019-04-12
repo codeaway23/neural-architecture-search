@@ -24,6 +24,11 @@ class LSTMController:
 		self.batch_shape = batch_shape
 		self.vocab = utils.vocab_dict(target_classes)
 		self.lstm_dim = 100
+		self.use_attention = True
+		self.optimizer = 'sgd'
+		self.lr = 0.01
+		self.decay = 0.0
+		self.momentum = 0.9
 		self.hybrid_weights = 'logdir/hybrid_weights{}.h5'.format(datetime.now().strftime("%H%M"))
 		self.model = self.hybrid_cntrl_model(self.inp_shape, self.batch_shape)
 		self.seq_data = []
@@ -65,11 +70,11 @@ class LSTMController:
 				self.seq_data.append(seed)
 		return samples
 
-	def hybrid_cntrl_model(self, inp_shape, batch_size, use_attention=True):
+	def hybrid_cntrl_model(self, inp_shape, batch_size):
 		main_input = Input(shape=inp_shape, batch_shape=batch_size, name='main_input')
 		x = LSTM(self.lstm_dim, return_sequences=True)(main_input)
 		predictor_output = Dense(1, activation='sigmoid', name='predictor_output')(x)
-		if use_attention:
+		if self.use_attention:
 			main_output = AttentionDecoder(self.lstm_dim, self.nb_classes, name='main_output')(x)
 		else:
 			main_output = Dense(self.nb_classes, activation = 'softmax', name='main_output')(x)
@@ -77,7 +82,10 @@ class LSTMController:
 		return model
 
 	def train_hybrid_model(self, x_data, y_data, pred_target, loss_func, batch_size, nb_epochs):
-		optim = optimizers.SGD(lr=0.01,momentum=0.9)
+		if self.optimizer == 'sgd':
+			optim = optimizers.SGD(lr=self.lr,decay=self.decay,momentum=self.momentum)
+		else:
+			optim = getattr(optimizer, self.optimizer)(lr=self.lr,decay=self.decay)
 		self.model.compile(optimizer=optim,
 	              	  loss={'main_output': loss_func, 'predictor_output': 'mse'},
 					  loss_weights = {'main_output': 1, 'predictor_output': 1})

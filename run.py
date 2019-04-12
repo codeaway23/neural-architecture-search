@@ -7,7 +7,6 @@ from sklearn.preprocessing import LabelEncoder
 import nas as nas
 import utils as utils
 
-from metadata.meta_learning import get_mdfile
 
 utils.clean_log()
 
@@ -21,11 +20,9 @@ x, y = utils.unison_shuffled_copies(x,y)
 
 target_classes = len(np.unique(y))
 
-mdfile = get_mdfile(x,y)
+mlpnas = nas.NAS(x, y, target_classes)
 
-mlpnas = nas.NAS(x, to_categorical(y), target_classes, mdfile)
-
-mlpnas.max_len = 5
+mlpnas.max_len = 3
 mlpnas.cntrl_epochs = 20
 mlpnas.mc_samples = 15
 mlpnas.hybrid_model_epochs = 15
@@ -33,7 +30,18 @@ mlpnas.nn_epochs = 1
 mlpnas.nb_final_archs = 10
 mlpnas.final_nn_train_epochs = 20
 mlpnas.alpha1 = 5
+mlpnas.lstm_dim = 100
+mlpnas.controller_attention = True
+mlpnas.controller_pre_training = True
 mlpnas.pre_train_epochs = 1000
+mlpnas.controller_optim = 'sgd'
+mlpnas.controller_lr = 0.01
+mlpnas.controller_decay = 0.0
+mlpnas.controller_momentum = 0.9
+mlpnas.nn_optim = 'Adam'
+mlpnas.nn_lr = 0.001
+mlpnas.nn_decay = 0.0
+
 
 # make all controller, nn parameters accessible for modification here.
 # lstm, nn optimizers.

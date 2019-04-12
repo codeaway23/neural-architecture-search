@@ -9,17 +9,17 @@ from keras.utils import to_categorical
 from keras.callbacks import EarlyStopping
 from keras.preprocessing.sequence import pad_sequences
 
-import generate_nn as gn
+import nn_generator as gnn
 import controller as lstm
 import utils as utils
+from metadata.meta_learning import get_mdfile
 
 
 ################### neural architecture search ####################
 
 class NAS:
 
-	def __init__(self, x, y, target_classes, mdfile):
-
+	def __init__(self, x, y, target_classes):
 		self.x_data = x
 		self.y_data = y
 		self.target_classes = target_classes
@@ -31,8 +31,19 @@ class NAS:
 		self.nb_final_archs = 10
 		self.final_nn_train_epochs = 100
 		self.alpha1 = 5
-		self.mdfile = mdfile
+		self.mdfile = get_mdfile(self.x_data,self.y_data)
 		self.pre_train_epochs = 1000
+		self.lstm_dim = 100
+		self.controller_attention = True
+		self.controller_pre_training = True
+		self.controller_optim = 'sgd'
+		self.controller_lr = 0.01
+		self.controller_decay = 0.0
+		self.controller_momentum = 0.9
+		self.nn_optim = 'Adam'
+		self.nn_lr = 0.001
+		self.nn_decay = 0.0
+		self.nn_momentum = 0.0
 		self.data = []
 		self.vocab = utils.vocab_dict(self.target_classes)
 		self.nb_classes = len(self.vocab.keys())+1
@@ -78,15 +89,16 @@ class NAS:
 				callbacks = [EarlyStopping(monitor='val_acc', patience=0)]
 			else:
 				callbacks=None
+			x,y = utils.unison_shuffled_copies(self.x_data, self.y_data)
 			if use_shared_weights:
 				## use pre-trained shared weights without updating them
-				history = self.nn.train_model(model,self.x_data,self.y_data,
+				history = self.nn.train_model(model,x,y,
 							  self.final_nn_train_epochs,
 							  validation_split=0.1,
 							  update_shared_weights=False,
 							  callbacks=callbacks)
 			else:
-				history = model.fit(self.x_data,self.y_data,
+				history = model.fit(x,y,
 						epochs=self.final_nn_train_epochs,
 						validation_split=0.1,
 						callbacks=callbacks)
@@ -137,20 +149,31 @@ class NAS:
 					 len(md),
 					 self.pre_train_epochs)
 
-	def architecture_search(self, nn_optimizer='Adam'):
+	def architecture_search(self):
 		## initialise network modelling and controller instances
-		self.nn = gn.NeuralNetwork(self.target_classes, 
-                	                   optimizer=nn_optimizer)
+		self.nn = gnn.NeuralNetwork(self.target_classes)
+		self.nn.optimizer = self.nn_optim
+		self.nn.lr = self.nn_lr
+		self.nn.decay = self.nn_decay
+		self.nn.momentum = self.nn_momentum
+
 		self.cntrl = lstm.LSTMController(self.max_len,
 						self.nb_classes,
 						self.target_classes,
 						(1,self.max_len-1),
 						len(self.data))
+		self.cntrl.lstm_dim = self.lstm_dim
+		self.cntrl.use_attention = self.controller_attention
+		self.cntrl.optimizer = self.controller_optim
+		self.cntrl.lr = self.controller_lr
+		self.cntrl.decay = self.controller_decay
+		self.cntrl.momentum = self.controller_momentum
 		## pretraining using metadata
-		self.pre_train_controller()
+		if self.controller_pre_training:
+			self.pre_train_controller()
 		## start architecture search
 		for n in range(self.cntrl_epochs):
-			self.pre_training = False
+			# self.pre_training = False
 			print("Controller epoch:", n+1)
 			self.curr_epoch = n
 			## generate sequences using random probabilistic sampling
@@ -167,7 +190,8 @@ class NAS:
 					self.nn.loss_func = 'binary_crossentropy'
 				model = self.nn.create_model(sequences[i], np.shape(self.x_data[0]))
 				print("predicted validation accuracy:", pred_val_acc[i])
-				history = self.nn.train_model(model,self.x_data,self.y_data,self.nn_epochs)
+				x,y = utils.unison_shuffled_copies(self.x_data, self.y_data)
+				history = self.nn.train_model(model,x,y,self.nn_epochs)
 				## condition to avoid error for nn_epochs = 1
 				if len(history.history['val_acc']) == 1:
 					self.data.append([sequences[i],
