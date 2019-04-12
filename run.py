@@ -4,7 +4,7 @@ import pandas as pd
 from keras.utils import to_categorical
 from sklearn.preprocessing import LabelEncoder
 
-import nas as nas
+import mlpnas as nas
 import utils as utils
 
 
