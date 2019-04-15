@@ -43,6 +43,7 @@ mlpnas.controller_momentum = 0.9
 mlpnas.nn_optim = 'Adam'
 mlpnas.nn_lr = 0.001
 mlpnas.nn_decay = 0.0
+mlpnas.dropout = 0.2
 
 sorted_archs = mlpnas.architecture_search()
 nastime = time.time()

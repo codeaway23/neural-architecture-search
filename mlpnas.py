@@ -44,6 +44,7 @@ class NAS:
 		self.nn_lr = 0.001
 		self.nn_decay = 0.0
 		self.nn_momentum = 0.0
+		self.dropout = 0.2
 		self.data = []
 		self.vocab = utils.vocab_dict(self.target_classes)
 		self.nb_classes = len(self.vocab.keys())+1
@@ -156,7 +157,7 @@ class NAS:
 		self.nn.lr = self.nn_lr
 		self.nn.decay = self.nn_decay
 		self.nn.momentum = self.nn_momentum
-
+		self.nn.dropout = self.dropout
 		self.cntrl = lstm.LSTMController(self.max_len,
 						self.nb_classes,
 						self.target_classes,

@@ -22,6 +22,7 @@ class NeuralNetwork:
 		self.lr = 0.001
 		self.decay = 0.0
 		self.momentum = 0.0
+		self.dropout = 0.2
 		self.loss_func = 'categorical_crossentropy'
 		self.metrics = ['accuracy']
 		self.weights_file = 'logdir/shared_weights{}.pkl'.format(datetime.now().strftime("%H%M"))
@@ -106,7 +107,7 @@ class NeuralNetwork:
 			model.add(Flatten(name = 'flatten', input_shape=inp_shape))
 			for i in range(len(pred_sequence)):
 				if pred_sequence[i] is 'dropout':
-					model.add(Dropout(0.2))
+					model.add(Dropout(self.dropout))
 				else:
 					model.add(Dense(units = pred_sequence[i][0], activation = pred_sequence[i][1]))
 			model.compile(loss = self.loss_func, optimizer = optim, metrics = self.metrics)
@@ -117,7 +118,7 @@ class NeuralNetwork:
 				if i == 0:
 					model.add(Dense(units = pred_sequence[i][0], activation = pred_sequence[i][1], input_shape=inp_shape))
 				elif pred_sequence[i] is 'dropout':
-					model.add(Dropout(0.2))
+					model.add(Dropout(self.dropout))
 				else:
 					model.add(Dense(units = pred_sequence[i][0], activation = pred_sequence[i][1]))
 			model.compile(loss = self.loss_func, optimizer = optim, metrics = self.metrics)
