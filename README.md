@@ -60,6 +60,7 @@ mlpnas.controller_momentum = 0.9
 mlpnas.nn_optim = 'Adam'
 mlpnas.nn_lr = 0.001
 mlpnas.nn_decay = 0.0
+mlpnas.dropout = 0.2
 ```
 
 to vary the search space, edit the vocab_dict() function in utils.py file. defaults mentioned below.
@@ -69,4 +70,3 @@ nodes = [8,16,32,64,128,256,512]
 act_funcs = ['sigmoid','tanh','relu','elu']
 ```
 
-constant dropout is included as well, the default value is 0.2. 
