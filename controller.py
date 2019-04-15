@@ -73,6 +73,7 @@ class LSTMController:
 	def hybrid_cntrl_model(self, inp_shape, batch_size):
 		main_input = Input(shape=inp_shape, batch_shape=batch_size, name='main_input')
 		x = LSTM(self.lstm_dim, return_sequences=True)(main_input)
+		## for sharing weights between accuracy predictor and sequence generator
 		predictor_output = Dense(1, activation='sigmoid', name='predictor_output')(x)
 		if self.use_attention:
 			main_output = AttentionDecoder(self.lstm_dim, self.nb_classes, name='main_output')(x)
@@ -86,6 +87,7 @@ class LSTMController:
 			optim = optimizers.SGD(lr=self.lr,decay=self.decay,momentum=self.momentum)
 		else:
 			optim = getattr(optimizer, self.optimizer)(lr=self.lr,decay=self.decay)
+		## hybrid models loss weights can be modified here
 		self.model.compile(optimizer=optim,
 	              	  loss={'main_output': loss_func, 'predictor_output': 'mse'},
 					  loss_weights = {'main_output': 1, 'predictor_output': 1})

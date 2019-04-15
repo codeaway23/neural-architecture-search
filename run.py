@@ -12,6 +12,7 @@ utils.clean_log()
 
 start = time.time()
 
+## data preprocessing
 data = pd.read_csv('datasets/22.csv')
 y = data['label'].values
 data.drop('label', axis=1, inplace=True)
@@ -20,6 +21,7 @@ x, y = utils.unison_shuffled_copies(x,y)
 
 target_classes = len(np.unique(y))
 
+## intialising the NAS object
 mlpnas = nas.NAS(x, y, target_classes)
 
 mlpnas.max_len = 3
@@ -42,11 +44,6 @@ mlpnas.nn_optim = 'Adam'
 mlpnas.nn_lr = 0.001
 mlpnas.nn_decay = 0.0
 
-
-# make all controller, nn parameters accessible for modification here.
-# lstm, nn optimizers.
-# lstm loss weights.
-
 sorted_archs = mlpnas.architecture_search()
 nastime = time.time()
 
@@ -54,6 +51,8 @@ seqsinorder = [item[0] for item in sorted_archs]
 valaccsinorder = [item[1] for item in sorted_archs]
 predvalaccsinorder = [item[2] for item in sorted_archs]
 
+## best architectures analysed in 4 settings: 
+## with/without pre-trained shared weights and/or early stopping
 best_archs_valacc, best = mlpnas.train_best_architectures(seqsinorder,
 						  use_shared_weights=True,
 						  earlyStopping=True)
