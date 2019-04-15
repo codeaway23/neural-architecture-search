@@ -2,10 +2,10 @@
 
 Insights drawn from the following papers:
 
-1. [ENAS](https://arxiv.org/abs/1802.03268), 
-2. [SeqGAN](https://arxiv.org/abs/1609.05473), 
-3. [NAO](https://arxiv.org/abs/1808.07233). 
-4. An evaluation of different NAS algorithms' search phases can be found [here](https://arxiv.org/abs/1902.08142).
+1. [ENAS](https://arxiv.org/abs/1802.03268)
+2. [SeqGAN](https://arxiv.org/abs/1609.05473) 
+3. [NAO](https://arxiv.org/abs/1808.07233)
+4. An evaluation of different NAS algorithms' search phases can be found [here](https://arxiv.org/abs/1902.08142)
 
 
 ## Features
