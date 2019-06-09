@@ -12,7 +12,7 @@ Insights drawn from the following papers:
 
 The code incorporates an LSTM controller to generate sequences that represent neural network architectures, and an accuracy predictor for the generated architectures. these architectures are built into keras models, trained for certain number of epochs, evaluated, the validation accuracy being used to update the controller for better architecture search. 
 
-1. LSTM controller with REINFORCE policy gradient
+1. LSTM controller with policy gradient (several improvements done in later versions not available here)
 2. Accuracy predictor that shares weights with the above mentioned LSTM controller.
 3. Weight sharing in all the architectures generated during the search phase. 
 4. Meta-learning using dataset properties extraction, comparison and pre-training of the LSTM model. 
