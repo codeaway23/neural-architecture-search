@@ -30,13 +30,6 @@ To run the architecture search:
 python3 run.py
 ```
 
-To generate metadata:
-1. Add dataset in the datasets directory.
-2. Run the following command from the metadata directory:
-```bash
-python3 generate_metadata.py
-```
-
 To change dataset preprocessing, the NAS/controller/mlp training parameters, open the run.py file and edit. defaults mentioned below.
 
 ```python
@@ -50,11 +43,9 @@ mlpnas.hybrid_model_epochs = 15
 mlpnas.nn_epochs = 1
 mlpnas.nb_final_archs = 10
 mlpnas.final_nn_train_epochs = 20
-mlpnas.alpha1 = 5
+mlpnas.alpha = 5
 mlpnas.lstm_dim = 100
 mlpnas.controller_attention = True
-mlpnas.controller_pre_training = True
-mlpnas.pre_train_epochs = 1000
 mlpnas.controller_optim = 'sgd'
 mlpnas.controller_lr = 0.01
 mlpnas.controller_decay = 0.0

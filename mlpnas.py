@@ -12,7 +12,6 @@ from keras.preprocessing.sequence import pad_sequences
 import nn_generator as gnn
 import controller as lstm
 import utils as utils
-from metadata.meta_learning import get_mdfile
 
 
 ################### neural architecture search ####################
@@ -30,12 +29,9 @@ class NAS:
 		self.nn_epochs = 1
 		self.nb_final_archs = 10
 		self.final_nn_train_epochs = 100
-		self.alpha1 = 5
-		self.mdfile = get_mdfile(self.x_data,self.y_data)
-		self.pre_train_epochs = 1000
+		self.alpha = 1
 		self.lstm_dim = 100
 		self.controller_attention = True
-		self.controller_pre_training = True
 		self.controller_optim = 'sgd'
 		self.controller_lr = 0.01
 		self.controller_decay = 0.0
@@ -49,22 +45,13 @@ class NAS:
 		self.vocab = utils.vocab_dict(self.target_classes)
 		self.nb_classes = len(self.vocab.keys())+1
 
-	def pre_train_loss(self, target, output):
-		with open(self.mdfile, 'rb') as f:
-			mdata = pickle.load(f)
-		self.reward = np.array([item[1] for item in mdata]).reshape(len(mdata),1)
-		loss =  - K.sum(target * K.log(output/K.sum(output)), axis=-1)
-		loss -= (self.reward - np.median(self.reward))*self.alpha1
-		return loss
+		self.q_values = np.zeros((self.mc_samples, 1))
 
 	def custom_loss(self, target, output):
 		self.reward = np.array([item[1] for item in self.data[-self.mc_samples:]]).reshape(self.mc_samples,1)
-		loss =  - K.sum(target * K.log(output/K.sum(output)), axis=-1)
-		loss -= (self.reward - np.median(self.reward))*self.alpha1
-	 	## add predictor accuracy term
-		# self.alpha2 = 3
-		# self.pred_acc = np.array([item[2] for item in self.data]).reshape(len(self.data),1)
-		# loss += (self.reward - self.pred_acc)*self.alpha2
+		self.q_values_new = self.reward + self.alpha*np.max(self.q_values)
+		loss = (max(self.q_values_new) - max(self.q_values))**2 
+		self.q_values = self.q_values_new
 		return loss
 
 	## best archs is list of sequences sorted by their validation accuracy in descending order
@@ -134,22 +121,6 @@ class NAS:
 			pickle.dump(best_archs_dict, file)
 		return val_accs, top_arch
 
-	def pre_train_controller(self):
-		print("pre-training...")
-		with open(self.mdfile, 'rb') as file:
-			md = pickle.load(file)
-		seqs = [item[0] for item in md]
-		seqs = [utils.encode_sequence(self.vocab, x) for x in seqs]
-		cntrl_sequences = pad_sequences(seqs, maxlen = self.max_len, padding='post')
-		xc = cntrl_sequences[:,:-1].reshape(len(cntrl_sequences),1,self.max_len-1)
-		yc = to_categorical(cntrl_sequences[:,-1],self.nb_classes)
-		val_acc_target = [item[1] for item in md]
-		self.cntrl.train_hybrid_model(xc,yc,
-					 val_acc_target,
-					 self.pre_train_loss,
-					 len(md),
-					 self.pre_train_epochs)
-
 	def architecture_search(self):
 		## initialise network modelling and controller instances
 		self.nn = gnn.NeuralNetwork(self.target_classes)
@@ -169,9 +140,6 @@ class NAS:
 		self.cntrl.lr = self.controller_lr
 		self.cntrl.decay = self.controller_decay
 		self.cntrl.momentum = self.controller_momentum
-		## pretraining using metadata
-		if self.controller_pre_training:
-			self.pre_train_controller()
 		## start architecture search
 		for n in range(self.cntrl_epochs):
 			# self.pre_training = False
