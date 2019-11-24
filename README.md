@@ -14,9 +14,8 @@ The code incorporates an LSTM controller to generate sequences that represent ne
 
 1. LSTM controller with deep Q learning
 2. Accuracy predictor that shares weights with the above mentioned LSTM controller.
-3. Weight sharing in all the architectures generated during the search phase. 
-4. Meta-learning using dataset properties extraction, comparison and pre-training of the LSTM model. 
-5. Attention mechanism used available in this [repository](https://github.com/datalogue/keras-attention)
+3. Weight sharing in all the architectures generated during the search phase.  
+4. Attention mechanism used available in this [repository](https://github.com/datalogue/keras-attention)
 
 
 ## Usage
