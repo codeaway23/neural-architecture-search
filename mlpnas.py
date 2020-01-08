@@ -45,13 +45,19 @@ class NAS:
 		self.vocab = utils.vocab_dict(self.target_classes)
 		self.nb_classes = len(self.vocab.keys())+1
 
-		self.q_values = np.zeros((self.mc_samples, 1))
-
+	def get_discounted_reward(self, rewards):
+		discounted_r = np.zeros_like(rewards, dtype=np.float32)
+		running_add = 0.
+		for t in reversed(range(len(rewards))):
+			running_add = running_add * self.alpha + rewards[t]
+			discounted_r[t] = running_add
+		discounted_r -= discounted_r.mean() / discounted_r.std()
+		return discounted_r
+	
 	def custom_loss(self, target, output):
-		self.reward = np.array([item[1] for item in self.data[-self.mc_samples:]]).reshape(self.mc_samples,1)
-		self.q_values_new = self.reward + self.alpha*np.max(self.q_values)
-		loss = (max(self.q_values_new) - max(self.q_values))**2 
-		self.q_values = self.q_values_new
+		reward = np.array([item[1] for item in self.data[-self.mc_samples:]]).reshape(self.mc_samples,1)
+		discounted_reward = self.get_discounted_reward(reward)
+		loss = - K.sum(target * K.log(output/K.sum(output)), axis=-1) * discounted_reward
 		return loss
 
 	## best archs is list of sequences sorted by their validation accuracy in descending order
