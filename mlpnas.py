@@ -55,7 +55,8 @@ class NAS:
 		return discounted_r
 	
 	def custom_loss(self, target, output):
-		reward = np.array([item[1] for item in self.data[-self.mc_samples:]]).reshape(self.mc_samples,1)
+		baseline = 0.5
+		reward = np.array([item[1] - baseline for item in self.data[-self.mc_samples:]]).reshape(self.mc_samples,1)
 		discounted_reward = self.get_discounted_reward(reward)
 		loss = - K.sum(target * K.log(output/K.sum(output)), axis=-1) * discounted_reward
 		return loss
