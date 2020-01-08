@@ -12,7 +12,7 @@ Insights drawn from the following papers:
 
 The code incorporates an LSTM controller to generate sequences that represent neural network architectures, and an accuracy predictor for the generated architectures. these architectures are built into keras models, trained for certain number of epochs, evaluated, the validation accuracy being used to update the controller for better architecture search. 
 
-1. LSTM controller with deep Q learning
+1. LSTM controller with REINFORCE gradient
 2. Accuracy predictor that shares weights with the above mentioned LSTM controller.
 3. Weight sharing in all the architectures generated during the search phase.  
 4. Attention mechanism used available in this [repository](https://github.com/datalogue/keras-attention)
