@@ -47,7 +47,7 @@ def gaussian_smoothing(x, y, sigma):
 	for i in y:
 		kernel = np.exp(-(y - i) ** 2 / (2 * sigma ** 2))
 		kernel = kernel / sum(kernel)
-		smoothed_x[i-1] = sum(x * kernel)
+		smoothed_x[i] = sum(x * kernel)
 	return smoothed_x
 
 def clean_log():

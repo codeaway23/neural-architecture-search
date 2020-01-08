@@ -35,6 +35,8 @@ class LSTMController:
 
 	def sample_arch_sequences(self, rand_samples):
 		final_layer_id = len(self.vocab)
+		dropout_id = final_layer_id - 1
+		vocab_idx = [0] + list(self.vocab.keys())
 		samples = []
 		print("generating architecture samples...")
 		## loop for generating rand_samples number of sample architectures
@@ -46,25 +48,25 @@ class LSTMController:
 				sequence = sequence.reshape(1,1,self.max_len-1)
 				# probab = self.model.predict(sequence)
 				(probab, _) = self.model.predict(sequence)
-				## remove zero value
-				probab = probab[0]
-				probab = np.delete(probab, 0)
-				if len(seed) == 0:
-					probab[-1] = 0 				## first layer can't be the last one
-					probab[-2] = 0				## first layer can't be dropout
+				probab = probab[0][0]
 				## smoothing using a gaussian kernel
-				probab = utils.gaussian_smoothing(probab, np.array(list(self.vocab.keys())), 0.02)
+				probab = utils.gaussian_smoothing(probab, np.array(vocab_idx), 0.02)
 				probab = probab/np.sum(probab)
 				## given the previous elements in a sequence, generating the following ones
-				next = np.random.choice(list(self.vocab.keys()),size=1, p = probab)[0]
+				next = np.random.choice(vocab_idx, size=1, p = probab)[0]
 				## considering the constraints
-				if not next == 0:
-					seed.append(next)
+				if next == dropout_id and len(seed) == 0:
+					continue
+				if next == final_layer_id and len(seed) == 0:
+					continue
 				if next == final_layer_id:
-					break
+						seed.append(next)
+						break
 				if len(seed) == self.max_len - 1:
 					seed.append(final_layer_id)
 					break
+				if not next == 0:
+					seed.append(next)
 			if seed not in self.seq_data:
 				samples.append(seed)
 				self.seq_data.append(seed)
@@ -84,9 +86,9 @@ class LSTMController:
 
 	def train_hybrid_model(self, x_data, y_data, pred_target, loss_func, batch_size, nb_epochs):
 		if self.optimizer == 'sgd':
-			optim = optimizers.SGD(lr=self.lr,decay=self.decay,momentum=self.momentum)
+			optim = optimizers.SGD(lr=self.lr,decay=self.decay,momentum=self.momentum,clipnorm=1.0)
 		else:
-			optim = getattr(optimizer, self.optimizer)(lr=self.lr,decay=self.decay)
+			optim = getattr(optimizer, self.optimizer)(lr=self.lr,decay=self.decay,clipnorm=1.0)
 		## hybrid models loss weights can be modified here
 		self.model.compile(optimizer=optim,
 	              	  loss={'main_output': loss_func, 'predictor_output': 'mse'},

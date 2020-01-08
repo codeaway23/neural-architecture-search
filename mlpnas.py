@@ -23,13 +23,13 @@ class NAS:
 		self.y_data = y
 		self.target_classes = target_classes
 		self.max_len = 3
-		self.cntrl_epochs = 13
-		self.mc_samples = 10
+		self.cntrl_epochs = 10
+		self.mc_samples = 5
 		self.hybrid_model_epochs = 10
 		self.nn_epochs = 1
 		self.nb_final_archs = 10
 		self.final_nn_train_epochs = 100
-		self.alpha = 1
+		self.alpha = 0.01
 		self.lstm_dim = 100
 		self.controller_attention = True
 		self.controller_optim = 'sgd'
